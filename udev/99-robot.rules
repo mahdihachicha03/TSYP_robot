@@ -1,0 +1,11 @@
+# Stable device names for the robot's USB serial devices.
+# Install: sudo cp udev/99-robot.rules /etc/udev/rules.d/ && sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# IDs below are the usual chips; confirm with `lsusb` once the devices are plugged in.
+#   YDLIDAR G4 USB adapter: Silicon Labs CP2102 (10c4:ea60)
+#   ESP32 dev board:        CH340 (1a86:7523) or CP2102 (10c4:ea60), depending on the board
+# If both use a CP2102, add ATTRS{serial}=="..." to tell them apart
+# (find it with: udevadm info -a -n /dev/ttyUSB0 | grep serial).
+
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE="0666", SYMLINK+="ydlidar"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666", SYMLINK+="esp32"

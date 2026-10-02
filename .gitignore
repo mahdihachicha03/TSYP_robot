@@ -1,0 +1,11 @@
+# colcon
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+# external sources, fetched by scripts/install_deps.sh
+ros2_ws/src/ydlidar_ros2_driver/
+# PlatformIO
+firmware/esp32/.pio/
+firmware/esp32/.vscode/
+__pycache__/
+*.pyc

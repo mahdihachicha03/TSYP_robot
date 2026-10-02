@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<!-- Tracked (skid-steer) robot, driven by sprockets at the front of each track.
+     Dimensions are placeholders (TBD): measure your robot and update them.
+     Keep sprocket_radius / track_separation in sync with robot_bringup/config/robot.yaml. -->
+<robot name="tsyp_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="body_length" value="0.22"/>
+  <xacro:property name="body_width" value="0.10"/>      <!-- chassis between the tracks -->
+  <xacro:property name="body_height" value="0.06"/>
+  <xacro:property name="body_z" value="0.02"/>          <!-- chassis bottom above ground -->
+  <xacro:property name="track_length" value="0.20"/>    <!-- sprocket axle to idler axle -->
+  <xacro:property name="track_width" value="0.04"/>
+  <xacro:property name="track_separation" value="0.15"/>  <!-- track center to track center -->
+  <xacro:property name="sprocket_radius" value="0.02"/>
+  <xacro:property name="lidar_x" value="0.0"/>
+  <xacro:property name="lidar_z" value="0.13"/>
+  <xacro:property name="imu_z" value="0.05"/>
+
+  <material name="grey"><color rgba="0.5 0.5 0.5 1"/></material>
+  <material name="black"><color rgba="0.1 0.1 0.1 1"/></material>
+
+  <!-- base_link: on the ground, at the center of the two tracks' contact patches
+       (the turning center of a skid-steer robot) -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${body_z + body_height / 2}"/>
+      <geometry><box size="${body_length} ${body_width} ${body_height}"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${body_z + body_height / 2}"/>
+      <geometry><box size="${body_length} ${track_separation + track_width} ${body_height}"/></geometry>
+    </collision>
+  </link>
+
+  <xacro:macro name="track" params="side y">
+    <!-- Track belt: a box between the sprocket and idler axles -->
+    <link name="${side}_track">
+      <visual>
+        <geometry><box size="${track_length} ${track_width} ${2 * sprocket_radius}"/></geometry>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <geometry><box size="${track_length + 2 * sprocket_radius} ${track_width} ${2 * sprocket_radius}"/></geometry>
+      </collision>
+    </link>
+    <joint name="${side}_track_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="${side}_track"/>
+      <origin xyz="0 ${y} ${sprocket_radius}"/>
+    </joint>
+
+    <!-- Drive sprocket at the front (rotates, reported in /joint_states) -->
+    <link name="${side}_sprocket">
+      <visual>
+        <origin rpy="${pi / 2} 0 0"/>
+        <geometry><cylinder radius="${sprocket_radius}" length="${track_width}"/></geometry>
+        <material name="black"/>
+      </visual>
+    </link>
+    <joint name="${side}_sprocket_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${side}_sprocket"/>
+      <origin xyz="${track_length / 2} ${y} ${sprocket_radius}"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+
+    <!-- Idler at the rear (free-wheeling, shown fixed) -->
+    <link name="${side}_idler">
+      <visual>
+        <origin rpy="${pi / 2} 0 0"/>
+        <geometry><cylinder radius="${sprocket_radius}" length="${track_width}"/></geometry>
+        <material name="black"/>
+      </visual>
+    </link>
+    <joint name="${side}_idler_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="${side}_idler"/>
+      <origin xyz="${-track_length / 2} ${y} ${sprocket_radius}"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:track side="left" y="${track_separation / 2}"/>
+  <xacro:track side="right" y="${-track_separation / 2}"/>
+
+  <link name="laser_frame">
+    <visual>
+      <geometry><cylinder radius="0.035" length="0.04"/></geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser_frame"/>
+    <origin xyz="${lidar_x} 0 ${lidar_z}"/>
+  </joint>
+
+  <!-- MPU6050: mount it with X forward and Z up, or rotate this joint to match -->
+  <link name="imu_link"/>
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 ${imu_z}"/>
+  </joint>
+
+</robot>

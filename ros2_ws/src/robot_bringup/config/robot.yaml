@@ -1,0 +1,17 @@
+# ESP32 bridge parameters. Values marked TBD come from calibration (see README).
+# Keep sprocket_radius / track_separation in sync with robot_description/urdf/robot.urdf.xacro
+# and counts_per_rev with firmware/esp32/include/config.h.
+esp32_bridge:
+  ros__parameters:
+    port: /dev/esp32
+    baud: 115200
+    sprocket_radius: 0.02       # m of track travel per radian of the motor output shaft, TBD
+                                # (= track sprocket pitch radius x chain ratio; calibrate, README step 3)
+    track_separation: 0.15      # m, center-to-center distance of the two tracks, TBD
+    turn_slip_factor: 1.0       # >= 1, calibrated with a 360 deg spin (README, Calibration step 4)
+    counts_per_rev: 682.0       # 11 PPR x 4 x 15.5 gear ratio
+    max_linear_speed: 0.4       # m/s
+    max_angular_speed: 1.5      # rad/s
+    cmd_rate: 20.0
+    cmd_timeout: 0.5
+    publish_tf: false           # the EKF publishes odom -> base_link
